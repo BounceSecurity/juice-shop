@@ -46,6 +46,10 @@ export function retrieveLoggedInUser () {
     } catch (err) {
       response = { user: { id: undefined, email: undefined, lastLoginIp: undefined, profileImage: undefined } }
     }
+    // Solve passwordHashLeakChallenge if showSensitive=true causing passwordHash to be returned
+    if (response?.user?.passwordHash && req.query?.showSensitive === 'true') {
+      challengeUtils.solveIf(challenges.passwordHashLeakChallenge, () => true)
+    }
     if (req.query.callback === undefined) {
       res.json(response)
     } else {

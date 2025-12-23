@@ -37,6 +37,7 @@ const CHALLENGE_KEYS = [
   'deprecatedInterfaceChallenge',
   'easterEggLevelOneChallenge',
   'emailLeakChallenge',
+  'passwordHashLeakChallenge',
   'emptyUserRegistration',
   'ephemeralAccountantChallenge',
   'errorHandlingChallenge',
