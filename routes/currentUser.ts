@@ -11,20 +11,37 @@ import * as security from '../lib/insecurity'
 export function retrieveLoggedInUser () {
   return (req: Request, res: Response) => {
     let user
+    let response: any
     try {
       if (security.verify(req.cookies.token)) {
         user = security.authenticatedUsers.get(req.cookies.token)
+        const hasShowSensitive = typeof req.query?.showSensitive !== 'undefined'
+        const rawShowSensitive = req.query?.showSensitive
+        const showHash = hasShowSensitive && (String(rawShowSensitive) === 'true' || String(rawShowSensitive) === '1')
+        const baseUser = {
+          id: user?.data?.id,
+          email: user?.data?.email,
+          lastLoginIp: user?.data?.lastLoginIp,
+          profileImage: user?.data?.profileImage
+        }
+        response = { user: baseUser }
+        if (user?.data != null) {
+          const stored = (user as any).data.password
+          if (hasShowSensitive) {
+            response.user.passwordHash = showHash ? stored : (stored ? String(stored).replace(/./g, '*') : undefined)
+          }
+        }
+      } else {
+        response = { user: { id: undefined, email: undefined, lastLoginIp: undefined, profileImage: undefined } }
       }
     } catch (err) {
-      user = undefined
-    } finally {
-      const response = { user: { id: (user?.data ? user.data.id : undefined), email: (user?.data ? user.data.email : undefined), lastLoginIp: (user?.data ? user.data.lastLoginIp : undefined), profileImage: (user?.data ? user.data.profileImage : undefined) } }
-      if (req.query.callback === undefined) {
-        res.json(response)
-      } else {
-        challengeUtils.solveIf(challenges.emailLeakChallenge, () => { return true })
-        res.jsonp(response)
-      }
+      response = { user: { id: undefined, email: undefined, lastLoginIp: undefined, profileImage: undefined } }
+    }
+    if (req.query.callback === undefined) {
+      res.json(response)
+    } else {
+      challengeUtils.solveIf(challenges.emailLeakChallenge, () => { return true })
+      res.jsonp(response)
     }
   }
 }
