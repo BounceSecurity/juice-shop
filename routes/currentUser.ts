@@ -46,8 +46,8 @@ export function retrieveLoggedInUser () {
     } catch (err) {
       response = { user: { id: undefined, email: undefined, lastLoginIp: undefined, profileImage: undefined } }
     }
-    // Solve passwordHashLeakChallenge if showSensitive=true causing passwordHash to be returned
-    if (response?.user?.passwordHash && req.query?.showSensitive === 'true') {
+    // Solve passwordHashLeakChallenge if showSensitive=true or showSensitive=1 causing passwordHash to be returned
+    if (response?.user?.passwordHash && (req.query?.showSensitive === 'true' || req.query?.showSensitive === '1')) {
       challengeUtils.solveIf(challenges.passwordHashLeakChallenge, () => true)
     }
     if (req.query.callback === undefined) {
